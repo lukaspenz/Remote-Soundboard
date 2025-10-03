@@ -1,6 +1,6 @@
 {
   "name": "remote-soundboard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A locally hosted soundboard with remote triggering capabilities",
   "main": "server.js",
   "scripts": {

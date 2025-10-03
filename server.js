@@ -12,6 +12,16 @@ const wss = new WebSocket.Server({ server });
 
 const PORT = 3030;
 
+// Detect if running as packaged executable (pkg)
+const isPkg = typeof process.pkg !== 'undefined';
+
+// Use executable directory for file storage when packaged
+// This allows the sounds folder to be read/write even in packaged version
+const APP_ROOT = isPkg ? path.dirname(process.execPath) : __dirname;
+
+console.log(`Running mode: ${isPkg ? 'PACKAGED' : 'DEVELOPMENT'}`);
+console.log(`App root: ${APP_ROOT}`);
+
 // Store current audio device
 let currentAudioDevice = null;
 
@@ -27,7 +37,7 @@ function generateToken() {
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'sounds'));
+    cb(null, path.join(APP_ROOT, 'sounds'));
   },
   filename: (req, file, cb) => {
     // Sanitize filename
@@ -83,7 +93,7 @@ function broadcast(data) {
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(APP_ROOT, 'public')));
 
 // Authentication middleware
 function requireAuth(req, res, next) {
@@ -125,14 +135,14 @@ const sounds = [
 // Save sounds to file
 function saveSounds() {
   fs.writeFileSync(
-    path.join(__dirname, 'sounds-config.json'),
+    path.join(APP_ROOT, 'sounds-config.json'),
     JSON.stringify(sounds, null, 2)
   );
 }
 
 // Load sounds from file if exists
 function loadSounds() {
-  const configPath = path.join(__dirname, 'sounds-config.json');
+  const configPath = path.join(APP_ROOT, 'sounds-config.json');
   if (fs.existsSync(configPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(configPath, 'utf8'));
@@ -145,6 +155,17 @@ function loadSounds() {
   }
 }
 
+// Ensure sounds directory exists (important for packaged version)
+function ensureSoundsDirectory() {
+  const soundsDir = path.join(APP_ROOT, 'sounds');
+  if (!fs.existsSync(soundsDir)) {
+    console.log('Creating sounds directory...');
+    fs.mkdirSync(soundsDir, { recursive: true });
+  }
+}
+
+// Initialize
+ensureSoundsDirectory();
 loadSounds();
 
 // Authentication endpoints
@@ -201,7 +222,7 @@ app.get('/api/audio/:id', (req, res) => {
     return res.status(404).json({ error: 'Sound not found' });
   }
   
-  const soundPath = path.join(__dirname, 'sounds', sound.file);
+  const soundPath = path.join(APP_ROOT, 'sounds', sound.file);
   
   // Check if file exists
   if (!fs.existsSync(soundPath)) {
@@ -229,7 +250,7 @@ app.post('/api/play/:id', async (req, res) => {
     return res.status(404).json({ error: 'Sound not found' });
   }
   
-  const soundPath = path.join(__dirname, 'sounds', sound.file);
+  const soundPath = path.join(APP_ROOT, 'sounds', sound.file);
   
   // Check if file exists
   if (!fs.existsSync(soundPath)) {
@@ -314,7 +335,7 @@ app.get('/api/sounds/files', (req, res) => {
     return res.status(403).json({ error: 'Only available from host PC' });
   }
   
-  const soundsDir = path.join(__dirname, 'sounds');
+  const soundsDir = path.join(APP_ROOT, 'sounds');
   const files = fs.readdirSync(soundsDir)
     .filter(file => file.match(/\.(wav|mp3|ogg|m4a)$/i))
     .filter(file => !sounds.some(s => s.file === file)); // Exclude already added files
@@ -334,7 +355,7 @@ app.post('/api/sounds/add', (req, res) => {
     return res.status(400).json({ error: 'Filename required' });
   }
   
-  const soundPath = path.join(__dirname, 'sounds', filename);
+  const soundPath = path.join(APP_ROOT, 'sounds', filename);
   if (!fs.existsSync(soundPath)) {
     return res.status(404).json({ error: 'File not found' });
   }
