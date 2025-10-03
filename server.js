@@ -99,7 +99,17 @@ function requireAuth(req, res, next) {
 // Check if request is from localhost (host device)
 function isLocalhost(req) {
   const ip = req.socket.remoteAddress;
-  return ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1';
+  const host = req.headers.host || '';
+  
+  // Check if IP is localhost
+  const isLocalIP = ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1';
+  
+  // Check if accessing via localhost hostname
+  const isLocalHost = host.startsWith('localhost:') || host === 'localhost';
+  
+  console.log(`isLocalhost check: ip=${ip}, host=${host}, isLocalIP=${isLocalIP}, isLocalHost=${isLocalHost}`);
+  
+  return isLocalIP || isLocalHost;
 }
 
 // Store available sounds
@@ -152,13 +162,20 @@ app.post('/api/auth/login', (req, res) => {
 
 app.get('/api/auth/check', (req, res) => {
   const token = req.headers['x-auth-token'] || req.query.token;
+  const clientIp = req.socket.remoteAddress;
+  const isLocal = isLocalhost(req);
+  
+  console.log(`Auth check from ${clientIp}, isLocalhost: ${isLocal}`);
   
   // Localhost always authenticated
-  if (isLocalhost(req)) {
+  if (isLocal) {
+    console.log('✅ Host PC authenticated (localhost)');
     res.json({ authenticated: true, isHost: true });
   } else if (sessionTokens.has(token)) {
+    console.log('✅ Remote device authenticated (valid token)');
     res.json({ authenticated: true, isHost: false });
   } else {
+    console.log('❌ Remote device needs authentication');
     res.json({ authenticated: false, isHost: false });
   }
 });

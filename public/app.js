@@ -73,36 +73,48 @@ async function checkIfHostDevice() {
         });
         const data = await response.json();
         
-        isHostDevice = data.isHost;
+        console.log('Auth check response:', data);
         
-        if (data.isHost) {
-            // Host device - no password needed
+        // Host device gets priority - always authenticated
+        if (data.isHost && data.authenticated) {
+            isHostDevice = true;
             console.log('Device mode: HOST (plays audio)');
             document.body.classList.add('host-device');
+            
+            // CRITICAL: Hide password dialog for host
+            passwordDialog.classList.add('hidden');
+            
             showStatus('Host PC - Audio will play here', 'success');
             
             // Show manage button for host
             document.getElementById('manageBtn').classList.remove('hidden');
             
             await loadSounds();
-        } else if (data.authenticated) {
+            
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 3000);
+        } else if (!data.isHost && data.authenticated) {
             // Remote device - already authenticated
+            isHostDevice = false;
             console.log('Device mode: REMOTE (triggers only)');
             document.body.classList.add('remote-device');
             showStatus('Remote Device - Authenticated', 'success');
             await loadSounds();
+            
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 3000);
         } else {
             // Remote device - needs authentication
+            isHostDevice = false;
             console.log('Device mode: REMOTE (needs authentication)');
             document.body.classList.add('remote-device');
             showPasswordDialog();
         }
-        
-        setTimeout(() => {
-            statusDiv.classList.add('hidden');
-        }, 3000);
     } catch (error) {
         console.error('Error checking auth:', error);
+        showStatus('Authentication error', 'error');
     }
 }
 

@@ -12,6 +12,10 @@ sounds-config.json
 *.log
 npm-debug.log*
 
+# Build output
+dist/
+Remote-Soundboard-Portable/
+
 # OS
 .DS_Store
 Thumbs.db
