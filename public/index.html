@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Soundboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Password Dialog -->
+        <div id="passwordDialog" class="dialog hidden">
+            <div class="dialog-content">
+                <h2>🔒 Authentication Required</h2>
+                <p>Enter password to access the soundboard:</p>
+                <input type="password" id="passwordInput" placeholder="Enter password" />
+                <button id="passwordSubmit" class="info-btn">Submit</button>
+                <div id="passwordError" class="hidden" style="color: #ff6666; margin-top: 10px;"></div>
+            </div>
+        </div>
+
+        <header>
+            <h1>Soundboard</h1>
+            <div class="info">
+                <button id="manageBtn" class="device-btn hidden">Manage Sounds</button>
+                <button id="showDevices" class="device-btn">Audio Output</button>
+                <button id="showInfo" class="info-btn">Network</button>
+                <button id="stopAll" class="stop-btn">Stop All</button>
+            </div>
+        </header>
+
+        <!-- Sound Management Panel (Host Only) -->
+        <div id="soundManagement" class="sound-management hidden">
+            <h3>Sound Management</h3>
+            
+            <div class="management-section">
+                <h4>📁 Add Existing Files</h4>
+                <p style="color: #a0a0a0; font-size: 0.9rem;">Select files from your sounds/ folder:</p>
+                <div id="availableFiles"></div>
+            </div>
+            
+            <div class="management-section">
+                <h4>📤 Upload New File</h4>
+                <input type="file" id="fileInput" accept="audio/*,.wav,.mp3,.ogg,.m4a" />
+                <input type="text" id="uploadName" placeholder="Sound name (optional)" />
+                <button id="uploadBtn" class="info-btn">Upload</button>
+            </div>
+            
+            <div class="management-section">
+                <h4>🎵 Current Sounds</h4>
+                <div id="currentSounds"></div>
+            </div>
+            
+            <button id="closeManage" class="close-btn">Close</button>
+        </div>
+
+        <div id="deviceInfo" class="device-info hidden">
+            <h3>Audio Output Device</h3>
+            <p>Select which device plays the sounds on this PC:</p>
+            <div id="deviceList">Loading devices...</div>
+            <button id="closeDevices" class="close-btn">Close</button>
+        </div>
+
+        <div id="networkInfo" class="network-info hidden">
+            <h3>Network Information</h3>
+            <p>Access from other devices:</p>
+            <div id="networkAddresses"></div>
+            <button id="closeInfo" class="close-btn">Close</button>
+        </div>
+
+        <main id="soundboard" class="soundboard">
+            <!-- Sound buttons will be dynamically loaded here -->
+        </main>
+
+        <div id="status" class="status hidden"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
